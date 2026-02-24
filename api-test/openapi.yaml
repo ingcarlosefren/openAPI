@@ -1,0 +1,535 @@
+openapi: 3.0.3
+info:
+  title: Users & Articles Management API
+  description: |
+    REST API for managing users and articles. Supports CRUD operations on user accounts
+    (with roles and profiles) and articles (with categories and ratings).
+
+    ## Running locally
+
+    You need to **clone** this [*repository*](http://example.net/)
+  version: 1.0.0
+  contact:
+    name: Charly Falco
+    email: cfalco@gmail.com
+    url: https://linked.in/cfalco
+  license:
+    name: MIT
+    url: https://licencia.mit.com
+  termsOfService: https://empresa-de-ejemplo.com/terminos-de-servicio.html
+
+servers:
+  - url: https://api.ejemplo.com/v1
+    description: Production server
+  - url: http://localhost:8080/v1
+    description: Local server
+
+tags:
+  - name: Users
+    description: Operations related to users
+  - name: Articles
+    description: Operations related to articles
+  - name: Health
+    description: Operations related to health
+
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns a 200 OK response if the API is healthy.
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        "200":
+          description: OK
+
+  /users:
+    get:
+      summary: Get the list of users
+      description: Gets the paginated list of users, with optional filtering by name.
+      operationId: getUsers
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/Filter'
+      responses:
+        "200":
+          description: The list of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+              example:
+                data:
+                  - id: "d290f1ee-6c54-4b01-90e6-d701748f0851"
+                    name: "María García"
+                    email: "maria.garcia@example.com"
+                    birthDate: "1990-05-15"
+                    role: PREMIUM
+
+    post:
+      summary: Create a user
+      description: Creates a new user and returns the created resource with its URI in the Location header.
+      operationId: createUser
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPost'
+            example:
+              name: "María García"
+              email: "maria.garcia@example.com"
+              birthDate: "1990-05-15"
+
+      responses:
+        "201":
+          description: The created user
+          headers:
+            Location:
+              description: URI of the created user
+              schema:
+                type: string
+                format: uri
+              example: https://api.ejemplo.com/users/d290f1ee-6c54-4b01-90e6-d701748f0851
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+        "400":
+          $ref: '#/components/responses/Error400'
+
+  /users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get a user
+      description: Gets a user by its unique identifier (UUID).
+      operationId: getUserById
+      tags:
+        - Users
+      responses:
+        "200":
+          description: The requested user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: "d290f1ee-6c54-4b01-90e6-d701748f0851"
+                name: "María García"
+                email: "maria.garcia@example.com"
+                birthDate: "1990-05-15"
+                role: PREMIUM
+
+        "404":
+          $ref: '#/components/responses/Error404'
+
+    patch:
+      summary: Update a user
+      description: Partially updates a user. At least one field must be provided.
+      operationId: patchUser
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPatch'
+            example:
+              email: "new.address@example.com"
+
+      responses:
+        "200":
+          description: The updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+        "400":
+          $ref: '#/components/responses/Error400'
+
+        "404":
+          $ref: '#/components/responses/Error404'
+
+    delete:
+      summary: Delete a user
+      description: Deletes a user by its unique identifier (UUID).
+      operationId: deleteUser
+      tags:
+        - Users
+      responses:
+        "204":
+          description: User deleted
+
+        "404":
+          $ref: '#/components/responses/Error404'
+
+  /articles:
+    get:
+      summary: Get the list of articles
+      description: Gets the list of all articles, with optional filtering by category.
+      operationId: getArticles
+      tags:
+        - Articles
+      parameters:
+        - $ref: '#/components/parameters/Category'
+      responses:
+        "200":
+          description: The list of articles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticlesResponse'
+
+    post:
+      summary: Create an article
+      description: Creates a new article and returns the created resource with its URI in the Location header.
+      operationId: createArticle
+      tags:
+        - Articles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticlePost'
+            example:
+              title: "Introduction to OpenAPI"
+              content: "In this article we'll see how to document APIs..."
+              author: "d290f1ee-6c54-4b01-90e6-d701748f0851"
+              rating: 4.5
+              category: PROGRAMMING
+
+      responses:
+        "201":
+          description: The created article
+          headers:
+            Location:
+              description: URI of the created article
+              schema:
+                type: string
+                format: uri
+              example: https://api.ejemplo.com/articles/a1b2c3d4-e5f6-7890-abcd-ef1234567890
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+
+        "400":
+          $ref: '#/components/responses/Error400'
+
+  /articles/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get an article
+      description: Gets an article by its unique identifier (UUID).
+      operationId: getArticleById
+      tags:
+        - Articles
+      responses:
+        "200":
+          description: The requested article
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+              example:
+                id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                created: 1708700000000
+                title: "Introduction to OpenAPI"
+                content: "In this article we'll see how to document APIs..."
+                author: "d290f1ee-6c54-4b01-90e6-d701748f0851"
+                rating: 4.5
+                category: PROGRAMMING
+
+        "404":
+          $ref: '#/components/responses/Error404'
+
+    put:
+      summary: Replace an article
+      description: Fully replaces an existing article.
+      operationId: putArticle
+      tags:
+        - Articles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticlePost'
+            example:
+              title: "Introduction to OpenAPI (updated)"
+              content: "Fully updated article content..."
+              author: "d290f1ee-6c54-4b01-90e6-d701748f0851"
+              rating: 5
+              category: PROGRAMMING
+
+      responses:
+        "200":
+          description: The updated article
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+
+        "400":
+          $ref: '#/components/responses/Error400'
+
+        "404":
+          $ref: '#/components/responses/Error404'
+
+  /users/{id}/articles:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get articles by user
+      description: Gets all articles written by the specified user, with optional filtering by category.
+      operationId: getArticlesByUser
+      tags:
+        - Users
+        - Articles
+      parameters:
+        - $ref: '#/components/parameters/Category'
+      responses:
+        "200":
+          description: The list of articles by the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticlesResponse'
+
+        "404":
+          $ref: '#/components/responses/Error404'
+
+
+components:
+
+  schemas:
+
+    Email:
+      type: string
+      format: email
+      example: "maria.garcia@example.com"
+
+    Name:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "María García"
+
+    UserPost:
+      title: UserPost
+      allOf:
+        - $ref: '#/components/schemas/Name'
+        - type: object
+          properties:
+            email:
+              $ref: '#/components/schemas/Email'
+        - type: object
+          properties:
+            birthDate:
+              type: string
+              format: date
+      required:
+        - name
+        - email
+        - birthDate
+
+    UserPatch:
+      title: UserPatch
+      anyOf:
+        - $ref: '#/components/schemas/Name'
+        - type: object
+      properties:
+        email:
+          $ref: '#/components/schemas/Email'
+        birthDate:
+          type: integer
+          format: int64
+          description: Birthdate timestamp (epoch in milliseconds)
+          example: 1708700000000
+
+    User:
+      title: User
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: "d290f1ee-6c54-4b01-90e6-d701748f0851"
+            role:
+              type: string
+              enum:
+                - ADMIN
+                - PREMIUM
+                - FREE
+              default: FREE
+              example: FREE
+        - $ref: '#/components/schemas/UserPost'
+
+    UsersResponse:
+      title: UsersResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+
+    ArticlePost:
+      title: ArticlePost
+      type: object
+      required:
+        - title
+        - content
+        - author
+        - category
+      properties:
+        title:
+          type: string
+          minLength: 1
+          example: "Introduction to OpenAPI"
+        content:
+          type: string
+          minLength: 1
+          example: "In this article we'll see how to document APIs..."
+        author:
+          type: string
+          format: uuid
+          description: ID of the user who created the article
+          example: "d290f1ee-6c54-4b01-90e6-d701748f0851"
+        rating:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 5
+          example: 4.5
+        category:
+          type: string
+          enum:
+            - PROGRAMMING
+            - AI
+            - DATA
+            - BLOCKCHAIN
+            - TESTING
+          example: PROGRAMMING
+
+    Article:
+      title: Article
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+            created:
+              type: integer
+              format: int64
+              description: Creation timestamp (epoch in milliseconds)
+              example: 1708700000000
+
+        - $ref: '#/components/schemas/ArticlePost'
+
+    ArticlesResponse:
+      title: ArticlesResponse
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Article'
+
+    ResponseError:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          example: "Error description"
+        details:
+          type: array
+          items:
+            type: string
+          example: []
+
+
+  parameters:
+
+    Id:
+      name: id
+      in: path
+      required: true
+      description: Unique identifier of the resource (UUID)
+      schema:
+        type: string
+        format: uuid
+
+    Filter:
+      name: filter
+      in: query
+      description: Filter by user name
+      schema:
+        type: string
+
+    Category:
+      name: category
+      in: query
+      description: Filter articles by category
+      schema:
+        type: string
+        enum:
+          - PROGRAMMING
+          - AI
+          - DATA
+          - BLOCKCHAIN
+          - TESTING
+
+
+  responses:
+
+    Error400:
+      description: The submitted data is not valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+          examples:
+            invalid-email:
+              summary: Invalid email format
+              description: The email was sent with an incorrect format
+              value:
+                code: "INVALID_EMAIL"
+                message: "The email is missing the @ symbol"
+                details: []
+            invalid-date:
+              summary: Invalid date format
+              description: The date does not follow the correct format
+              value:
+                code: "INVALID_DATE"
+                message: "The date does not follow the expected format"
+                details: []
+
+    Error404:
+      description: The requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+          example:
+            code: "NOT_FOUND"
+            message: "The requested resource does not exist"
+            details: []
