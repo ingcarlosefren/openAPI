@@ -32,7 +32,7 @@ Este proyecto utiliza **Arquitectura Hexagonal (Ports & Adapters)** para garanti
 ### 1. Clonar el repositorio
 ```bash
 git clone [https://github.com/ingcarlosefren/openAPI.git](https://github.com/ingcarlosefren/openAPI.git)
-cd proyecto-api
+cd openAPI/api-test
 ```
 ### 2. Configurar entorno virtual
 ```bash
@@ -55,11 +55,13 @@ ReDoc: http://localhost:8080/redoc
 
 Especificación: El contrato original se encuentra en openapi.yaml.
 
+Health check: http://localhost:8080/v1/health
+
 ### 🧪 Testing
 Para ejecutar la suite de pruebas (Unitarias, Integración y E2E):
 ```bash
 # Ejecutar todos los tests
-pytest
+pytest -v
 
 # Ejecutar con reporte de cobertura
 pytest --cov=src
